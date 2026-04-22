@@ -1,11 +1,10 @@
-﻿using Soenneker.Tests.Unit;
-using Xunit;
+using Soenneker.Tests.Unit;
 
 namespace Soenneker.Streams.Prefixed.Tests;
 
 public sealed class PrefixedStreamTests : UnitTest
 {
-    [Fact]
+    [Test]
     public void Default()
     {
 
