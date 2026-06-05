@@ -25,17 +25,39 @@ public sealed class PrefixedStream : Stream
         _prefixLength = prefixLength;
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether read is allowed.
+    /// </summary>
     public override bool CanRead => true;
+    /// <summary>
+    /// Gets or sets a value indicating whether seek is allowed.
+    /// </summary>
     public override bool CanSeek => false;
+    /// <summary>
+    /// Gets or sets a value indicating whether write is allowed.
+    /// </summary>
     public override bool CanWrite => false;
+    /// <summary>
+    /// Gets or sets length.
+    /// </summary>
     public override long Length => throw new NotSupportedException();
 
+    /// <summary>
+    /// Gets or sets position.
+    /// </summary>
     public override long Position
     {
         get => throw new NotSupportedException();
         set => throw new NotSupportedException();
     }
 
+    /// <summary>
+    /// Executes the read operation.
+    /// </summary>
+    /// <param name="buffer">The buffer.</param>
+    /// <param name="offset">The offset.</param>
+    /// <param name="count">The count.</param>
+    /// <returns>The result of the operation.</returns>
     public override int Read(byte[] buffer, int offset, int count)
     {
         if (_prefix is not null)
@@ -55,6 +77,12 @@ public sealed class PrefixedStream : Stream
         return _inner.Read(buffer, offset, count);
     }
 
+    /// <summary>
+    /// Reads async.
+    /// </summary>
+    /// <param name="buffer">The buffer.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task containing the result of the operation.</returns>
     public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
     {
         if (_prefix is not null)
@@ -75,6 +103,14 @@ public sealed class PrefixedStream : Stream
         return await _inner.ReadAsync(buffer, cancellationToken).NoSync();
     }
 
+    /// <summary>
+    /// Reads async.
+    /// </summary>
+    /// <param name="buffer">The buffer.</param>
+    /// <param name="offset">The offset.</param>
+    /// <param name="count">The count.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task containing the result of the operation.</returns>
     public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
         // let Stream base route to Memory<byte> override for newer runtimes,
@@ -93,6 +129,10 @@ public sealed class PrefixedStream : Stream
         base.Dispose(disposing);
     }
 
+    /// <summary>
+    /// Asynchronously releases resources used by the current instance.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public override async ValueTask DisposeAsync()
     {
         ReturnPrefix();
@@ -110,8 +150,27 @@ public sealed class PrefixedStream : Stream
         ArrayPool<byte>.Shared.Return(p);
     }
 
+    /// <summary>
+    /// Executes the flush operation.
+    /// </summary>
     public override void Flush() => throw new NotSupportedException();
+    /// <summary>
+    /// Executes the seek operation.
+    /// </summary>
+    /// <param name="offset">The offset.</param>
+    /// <param name="origin">The origin.</param>
+    /// <returns>The result of the operation.</returns>
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+    /// <summary>
+    /// Sets length.
+    /// </summary>
+    /// <param name="value">The value.</param>
     public override void SetLength(long value) => throw new NotSupportedException();
+    /// <summary>
+    /// Executes the write operation.
+    /// </summary>
+    /// <param name="buffer">The buffer.</param>
+    /// <param name="offset">The offset.</param>
+    /// <param name="count">The count.</param>
     public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 }
