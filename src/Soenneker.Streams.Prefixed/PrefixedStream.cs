@@ -18,6 +18,12 @@ public sealed class PrefixedStream : Stream
     private readonly int _prefixLength;
     private int _prefixPos;
 
+    /// <summary>
+    /// Creates a stream that returns a previously read prefix before continuing with the inner stream.
+    /// </summary>
+    /// <param name="inner">The stream positioned immediately after the prefetched bytes.</param>
+    /// <param name="prefix">A buffer rented from <c>ArrayPool&lt;byte&gt;.Shared</c> whose ownership is transferred to this stream.</param>
+    /// <param name="prefixLength">The number of valid bytes at the beginning of <paramref name="prefix"/>.</param>
     public PrefixedStream(Stream inner, byte[] prefix, int prefixLength)
     {
         _inner = inner;
