@@ -83,6 +83,34 @@ public sealed class PrefixedStream : Stream
         return _inner.Read(buffer, offset, count);
     }
 
+    public override int Read(Span<byte> buffer)
+    {
+        if (_prefix is not null)
+        {
+            int remaining = _prefixLength - _prefixPos;
+            if (remaining > 0)
+            {
+                int take = Math.Min(buffer.Length, remaining);
+                _prefix.AsSpan(_prefixPos, take).CopyTo(buffer);
+                _prefixPos += take;
+                return take;
+            }
+            ReturnPrefix();
+        }
+        return _inner.Read(buffer);
+    }
+
+    public override int ReadByte()
+    {
+        if (_prefix is not null)
+        {
+            if (_prefixPos < _prefixLength)
+                return _prefix[_prefixPos++];
+            ReturnPrefix();
+        }
+        return _inner.ReadByte();
+    }
+
     /// <summary>
     /// Reads async.
     /// </summary>
@@ -119,9 +147,10 @@ public sealed class PrefixedStream : Stream
     /// <returns>A task containing the result of the operation.</returns>
     public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
-        // let Stream base route to Memory<byte> override for newer runtimes,
-        // but keep this for completeness.
-        return base.ReadAsync(buffer, offset, count, cancellationToken);
+        ValidateBufferArguments(buffer, offset, count);
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromCanceled<int>(cancellationToken);
+        return ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
     }
 
     protected override void Dispose(bool disposing)
